@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dailynest:Your personal Task manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --accent: #0b55f5;
+            --dark-1: #0f172a;
+            --dark-2: #1e293b;
+            --dark-3: #334155;
+            --light-1: #f8fafc;
+            --light-2: #e2e8f0;
+            --light-3: #cbd5e1;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #220bf5;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--dark-1);
+            color: var(--light-2);
+            min-height: 100vh;
+            perspective: 1000px;
+            transition: all 0.3s ease;
+        }
+
+        /* Light Mode */
+        body.light-mode {
+            --dark-1: #f8fafc;
+            --dark-2: #e2e8f0;
+            --dark-3: #cbd5e1;
+            --light-1: #0f172a;
+            --light-2: #1e293b;
+            --light-3: #334155;
+        }
+
+        /* 3D Card Effects */
+        .card-3d {
+            background: var(--dark-2);
+            border: 1px solid var(--dark-3);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+            transform-style: preserve-3d;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateZ(0);
+            overflow: hidden;
+        }
+
+        .card-3d:hover {
+            transform: translateY(-8px) rotateX(3deg) rotateY(2deg) translateZ(15px);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary);
+        }
+
+        /* Navigation */
+        .nav-dark {
+            background: var(--dark-2);
+            border-bottom: 1px solid var(--dark-3);
+        }
+
+        /* Task Items */
+        .task-item {
+            transform-style: preserve-3d;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            padding-left: 12px;
+            border-left: 6px solid var(--primary);
+        }
+        /* ...existing code... */
+        /* ...existing code... */
+.task-item .bi-three-dots-vertical {
+    color: var(--light-1) !important;
+}
+body.light-mode .task-item .bi-three-dots-vertical {
+    color: #0f172a !important;
+}
+/* ...existing code... */
+.task-item h6 {
+    color: var(--light-1) !important;
+}
+body.light-mode .task-item h6 {
+    color: #0f172a !important;
+}
+/* ...existing code... */
+
+        .task-item:hover {
+            transform: translateX(8px) translateZ(10px);
+        }
+
+        /* Priority Colors */
+        .priority-high { border-left-color: var(--danger) !important; }
+        .priority-medium { border-left-color: var(--warning) !important; }
+        .priority-low { border-left-color: var(--success) !important; }
+
+        /* Floating Action Button */
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(10deg) translateZ(10px);
+            background: var(--primary-dark);
+        }
+        /* ...existing code... */
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link:focus,
+.navbar-nav .nav-link:hover {
+    color: #111 !important; /* Change hover/active color to black */
+    border-bottom: 2.5px solid #111;
+    background: none !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.10), 0 1px 0 #fff;
+    letter-spacing: 2px;
+}
+/* ...existing code... */
+body.light-mode .navbar-nav .nav-link.active,
+body.light-mode .navbar-nav .nav-link:focus,
+body.light-mode .navbar-nav .nav-link:hover {
+    color: #111 !important; /* Also black in light mode */
+    border-bottom: 2.5px solid #111;
+    background: none !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.10), 0 1px 0 #fff;
+    letter-spacing: 2px;
+}
+/* ...existing code... */
+
+        /* Page Transitions */
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--dark-2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--dark-3);
+            border-radius: 4px;
+        }
+
+        /* Enhanced Timer Styles */
+        .timer-container {
+            text-align: center;
+        }
+        
+        .timer-display {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        /* Add this to your <style> section */
+.navbar-brand.fw-bold {
+    font-size: 2rem;
+    font-weight: 900 !important;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #2563eb 30%, #10b981 70%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 8px rgba(37,99,235,0.15), 0 1px 0 #fff;
+    padding: 0.2em 0.5em;
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+/* ...existing code... */
+.navbar-nav .nav-link {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    color: #e2e8f0 !important;
+    transition: color 0.2s, border-bottom 0.2s;
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+}
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link:focus,
+.navbar-nav .nav-link:hover {
+    color: var(--accent) !important;
+    border-bottom: 2px solid var(--accent);
+    background: none !important;
+    text-shadow: 0 2px 8px rgba(245,158,11,0.10), 0 1px 0 #fff;
+}
+body.light-mode .navbar-nav .nav-link {
+    color: #0f172a !important;
+}
+body.light-mode .navbar-nav .nav-link.active,
+body.light-mode .navbar-nav .nav-link:focus,
+body.light-mode .navbar-nav .nav-link:hover {
+    color: var(--accent) !important;
+    border-bottom: 2px solid var(--accent);
+    background: none !important;
+    text-shadow: 0 2px 8px rgba(139, 136, 165, 0.1), 0 1px 0 #fff;
+}
+/* ...existing code... */
+/* ...existing code... */
+/* ...existing code... */
+/* ...existing code... */
+/* ...existing code... */
+/* ...existing code... */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark) 80%);
+    color: var(--light-2);
+    min-height: 100vh;
+    perspective: 1000px;
+    transition: background 0.5s, color 0.3s;
+}
+
+/* Light Mode */
+body.light-mode {
+    --dark-1: #f8fafc;
+    --dark-2: #e2e8f0;
+    --dark-3: #cbd5e1;
+    --light-1: #0f172a;
+    --light-2: #1e293b;
+    --light-3: #334155;
+    background: linear-gradient(135deg, var(--dark-1), var(--primary) 80%);
+    color: var(--light-2);
+}
+/* ...existing code... */
+/* ...existing code... */
+.navbar-nav .nav-link {
+    font-weight: 900;
+    font-size: 1.18rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--primary) !important;
+    padding-bottom: 6px;
+    border-bottom: 2.5px solid transparent;
+    transition: 
+        color 0.2s, 
+        border-bottom 0.2s, 
+        text-shadow 0.2s;
+    text-shadow: 0 2px 8px rgba(37,99,235,0.10), 0 1px 0 #fff;
+}
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link:focus,
+.navbar-nav .nav-link:hover {
+    color: var(--accent) !important;
+    border-bottom: 2.5px solid var(--accent);
+    background: none !important;
+    text-shadow: 0 2px 8px rgba(245,158,11,0.15), 0 1px 0 #fff;
+}
+
+body.light-mode .navbar-nav .nav-link {
+    color: var(--primary-dark) !important;
+    text-shadow: 0 2px 8px rgba(245,158,11,0.08), 0 1px 0 #fff;
+}
+body.light-mode .navbar-nav .nav-link.active,
+body.light-mode .navbar-nav .nav-link:focus,
+body.light-mode .navbar-nav .nav-link:hover {
+    color: var(--accent) !important;
+    border-bottom: 2.5px solid var(--accent);
+    background: none !important;
+    text-shadow: 0 2px 8px rgba(245,158,11,0.15), 0 1px 0 #fff;
+}
+/* ...existing code... */
+body.light-mode .navbar-brand.fw-bold {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: #0f172a !important;
+    background-clip: initial !important;
+    
+    color: #0f172a !important;
+    text-shadow: 0 2px 8px rgba(245,158,11,0.10), 0 1px 0 #fff;
+}
+/* ...existing code... */
+.navbar-brand.fw-bold:hover {
+    background: linear-gradient(90deg, #10b981 10%, #707094 90%);
+}
+/* ...existing code... */
+.navbar-brand.fw-bold {
+    font-size: 2rem;
+    font-weight: 900 !important;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #2563eb 30%, #10b981 70%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow:
+        2px 2px 8px rgba(37,99,235,0.25),   /* blue glow */
+        0 4px 16px rgba(16,185,129,0.15),   /* green glow */
+        0 2px 0 #fff,                       /* highlight */
+        0 6px 12px rgba(0,0,0,0.18);        /* shadow for 3D effect */
+    padding: 0.2em 0.5em;
+    border-radius: 8px;
+    transition: background 0.3s, text-shadow 0.3s, transform 0.2s;
+    perspective: 300px;
+    transform-style: preserve-3d;
+    position: relative;
+}
+.navbar-brand.fw-bold::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 0;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(37,99,235,0.18) 0%, rgba(0,0,0,0.05) 100%);
+    filter: blur(2px);
+    z-index: 0;
+}
+.navbar-brand.fw-bold:hover {
+    background: linear-gradient(90deg, #10b981 10%, #707094 90%);
+    transform: translateY(-2px) scale(1.04) rotateX(8deg);
+    box-shadow: 0 8px 32px rgba(16,185,129,0.12);
+}
+/* Light mode adjustment for 3D effect */
+body.light-mode .navbar-brand.fw-bold {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: #0f172a !important;
+    background-clip: initial !important;
+    color: #0f172a !important;
+    text-shadow:
+        2px 2px 8px rgba(245,158,11,0.10),
+        0 2px 0 #fff,
+        0 6px 12px rgba(0,0,0,0.08);
+}
+body.light-mode .navbar-brand.fw-bold::after {
+    background: radial-gradient(ellipse at center, rgba(245,158,11,0.10) 0%, rgba(0,0,0,0.03) 100%);
+}
+/* ...existing code... */
+        
+        .timer-presets {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .timer-preset-btn {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .timer-mode {
+            margin-top: 10px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        /* Modal Styles */
+        .modal-3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1050;
+        }
+
+        .modal-content-3d {
+            background: var(--dark-2);
+            border: 1px solid var(--dark-3);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            transform-style: preserve-3d;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content-3d:hover {
+            transform: translateY(-5px) rotateX(2deg) rotateY(1deg) translateZ(10px);
+        }
+
+        /* Improved input contrast */
+        .modal-content-3d input,
+        .modal-content-3d textarea,
+        .modal-content-3d select {
+            background-color: var(--dark-1) !important;
+            color: var(--light-1) !important;
+            border-color: var(--dark-3) !important;
+        }
+
+        .modal-content-3d input:focus,
+        .modal-content-3d textarea:focus,
+        .modal-content-3d select:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25) !important;
+        }
+
+        .modal-content-3d label {
+            color: var(--light-2) !important;
+            font-weight: 500;
+        }
+
+        /* AI Suggestions Styling */
+        .ai-suggestion-card {
+            border-left: 4px solid var(--accent);
+            transition: all 0.2s ease;
+        }
+
+        .ai-suggestion-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Analytics specific styles */
+        .analytics-card {
+            transition: all 0.3s ease;
+        }
+        
+        .analytics-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .analytics-filter {
+            background: var(--dark-2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: var(--dark-3);
+            margin-bottom: 15px;
+        }
+
+        .stat-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--light-3);
+        }
+
+        .category-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .work-tag { background: rgba(37, 99, 235, 0.2); color: #2563eb; }
+        .personal-tag { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .study-tag { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+        .health-tag { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .other-tag { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        :root {
+    /* ... your existing variables ... */
+    --stat-text: #f8fafc; /* Light color for dark mode */
+}
+
+/* In your light-mode section */
+body.light-mode {
+    /* ... your existing light mode variables ... */
+    --stat-text: #0f172a; /* Dark color for light mode */
+}
+
+/* Update the stats card styling */
+.card-3d.text-center h3 {
+    color: var(--stat-text) !important;
+}
+
+.card-3d.text-center small {
+    color: var(--light-3) !important;
+}
+/* Add this to your CSS */
+.task-item p.small.text-muted {
+    color: var(--light-3) !important;
+}
+
+/* Light mode adjustment */
+body.light-mode .task-item p.small.text-muted {
+    color: #64748b !important;
+}
+.stat-card h3 {
+    color: var(--stat-text);
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+.stat-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--light-3);
+}
+.timer-display {
+    font-size: 4rem;
+    font-weight: bold;
+    margin: 20px 0;
+    font-family: monospace;
+    color: var(--light-1); /* Add this line */
+}
+.timer-mode {
+    margin-top: 10px;
+    font-weight: bold;
+    color: var(--accent);
+}
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Language Selector -->
+        <div class="container mt-2 mb-2 d-flex justify-content-end">
+            <select v-model="currentLanguage" @change="saveLanguage" class="form-select w-auto">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="sa">संस्कृतम्</option>
+            </select>
+        </div>
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg nav-dark">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="#" @click="changePage('dashboard')">
+                    <i class="bi bi-kanban me-2"></i>{{ t('appTitle') }}
+                </a>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{ 'active': currentPage === 'dashboard' }" 
+                               @click="changePage('dashboard')">
+                                <i class="bi bi-house-door me-1"></i> 
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{ 'active': currentPage === 'analytics' }" 
+                               @click="changePage('analytics')">
+                                <i class="bi bi-graph-up me-1"></i> 
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" :class="{ 'active': currentPage === 'settings' }" 
+                               @click="changePage('settings')">
+                                <i class="bi bi-gear me-1"></i> 
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" @click="toggleDarkMode">
+                                <i class="bi" :class="darkMode ? 'bi-sun' : 'bi-moon'"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page container py-4" :class="{ 'active': currentPage === 'dashboard' }">
+            <h2 class="mb-4 fw-bold"><i class="bi bi-house-door me-2"></i>{{ t('dashboard') }}</h2>
+            <div class="row mb-4 g-3">
+                <div class="col-md-3">
+                    <div class="card-3d p-3 text-center">
+                        <h3 class="mb-0 text-primary">{{ activeTasks }}</h3>
+                        <small class="text-muted">{{ t('activeTasks') }}</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-3d p-3 text-center">
+                        <h3 class="mb-0 text-success">{{ completedTasks }}</h3>
+                        <small class="text-muted">{{ t('completed') }}</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-3d p-3 text-center">
+                        <h3 class="mb-0 text-danger">{{ overdueTasks }}</h3>
+                        <small class="text-muted">{{ t('overdue') }}</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card-3d p-3 text-center">
+                        <h3 class="mb-0 text-warning">{{ productivityScore }}%</h3>
+                        <small class="text-muted">{{ t('productivity') }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card-3d p-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">{{ t('yourTasks') }}</h5>
+                            <div>
+                                <button class="btn btn-sm btn-primary me-2" @click="showTaskModal = true">
+                                    <i class="bi bi-plus"></i> {{ t('addTask') }}
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" @click="generateAISuggestions">
+                                    <i class="bi bi-robot"></i> {{ t('aiHelp') }}
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="task-list" style="max-height: 500px; overflow-y: auto;">
+                            <div v-for="task in filteredTasks" :key="task.id" 
+                                 class="task-item card-3d p-3 mb-3" 
+                                 :class="'priority-' + task.priority.toLowerCase()">
+                                <div class="d-flex align-items-start">
+                                    <input type="checkbox" v-model="task.completed" @change="updateTask(task)" 
+                                           class="form-check-input me-3 mt-1" style="transform: scale(1.2)">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 :class="{ 'text-decoration-line-through text-muted': task.completed }" 
+                                                style="font-weight: 500;">
+                                                {{ task.title[currentLanguage] || task.title['en'] }}
+                                            </h6>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm p-0" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical text-muted"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-dark">
+                                                    <li><a class="dropdown-item" @click="editTask(task)"><i class="bi bi-pencil me-2"></i>{{ t('edit') }}</a></li>
+                                                    <li><a class="dropdown-item" @click="deleteTask(task.id)"><i class="bi bi-trash me-2"></i>{{ t('delete') }}</a></li>
+                                                    <li><a class="dropdown-item" @click="startTaskTimer(task)"><i class="bi bi-stopwatch me-2"></i>{{ t('startTimer') }}</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <p class="small text-muted mb-2" v-if="task.description[currentLanguage]">
+                                          {{ task.description[currentLanguage] }}
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge bg-dark me-2">
+                                                    <i class="bi bi-calendar me-1"></i>{{ formatDate(task.dueDate) || t('noDeadline') }}
+                                                </span>
+                                                <span class="badge" :class="getCategoryClass(task.category)">
+                                                    {{ task.category }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span class="badge" :class="{
+                                                    'bg-danger': task.priority === 'HIGH',
+                                                    'bg-warning': task.priority === 'MEDIUM',
+                                                    'bg-success': task.priority === 'LOW'
+                                                }">
+                                                    {{ task.priority }}
+                                                </span>
+                                                <span v-if="task.timeSpent > 0" class="badge bg-secondary ms-2">
+                                                    <i class="bi bi-clock-history me-1"></i>{{ formatHours(task.timeSpent) }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Reset All Tasks Button (small, right-aligned, margin-top) -->
+                        <div class="d-flex justify-content-end mt-2">
+                            <button
+                                class="btn btn-sm btn-danger reset-tasks-btn"
+                                style="min-width: 140px;"
+                                @click="tasks = []; saveTasks();"
+                            >
+                                {{ t('reset') }} All Tasks
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card-3d p-3 mb-4">
+                        <h5 class="d-flex justify-content-between align-items-center mb-3">
+                            <span><i class="bi bi-robot me-2"></i>{{ t('aiSuggestions') }}</span>
+                            <button class="btn btn-sm btn-outline-primary" @click="generateAISuggestions">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                        </h5>
+                        <div v-if="aiSuggestions.length > 0">
+                            <div v-for="(suggestion, index) in aiSuggestions" :key="index" 
+                                 class="ai-suggestion-card card-3d p-3 mb-2">
+                                <div class="d-flex">
+                                    <div class="flex-grow-1">
+                                        <p class="small mb-2">{{ suggestion.text }}</p>
+                                        <button @click="applySuggestion(suggestion)" 
+                                                class="btn btn-sm btn-outline-primary w-100">
+                                            {{ t('applySuggestion') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="text-center py-4">
+                            <i class="bi bi-lightbulb text-muted" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2">{{ t('noSuggestions') }}</p>
+                            <button @click="generateAISuggestions" class="btn btn-sm btn-primary mt-2">
+                                {{ t('generateSuggestions') }}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-3d p-3">
+                        <h5 class="mb-3"><i class="bi bi-clock me-2"></i>{{ t('focusTimer') }}</h5>
+                        <div class="timer-container">
+                            <div class="timer-presets">
+                                <button @click="setTimerPreset(1500, 300)" 
+                                        class="btn btn-sm timer-preset-btn" 
+                                        :class="{'btn-primary': timerPreset === 'pomodoro'}">
+                                    Pomodoro (25/5)
+                                </button>
+                                <button @click="setTimerPreset(3000, 600)" 
+                                        class="btn btn-sm timer-preset-btn" 
+                                        :class="{'btn-primary': timerPreset === 'double'}">
+                                    Double (50/10)
+                                </button>
+                            </div>
+                            
+                            <div class="timer-display">{{ formatTime(timerTime) }}</div>
+                            
+                            <div class="timer-controls">
+                                <button @click="startTimer" class="btn btn-primary" :disabled="timerActive">
+                                    <i class="bi bi-play"></i> {{ t('start') }}
+                                </button>
+                                <button @click="pauseTimer" class="btn btn-dark" :disabled="!timerActive">
+                                    <i class="bi bi-pause"></i> {{ t('pause') }}
+                                </button>
+                                <button @click="resetTimer" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="timer-mode">
+                                {{ timerMode === 'work' ? '⏳ Work Time' : '☕ Break Time' }}
+                            </div>
+                            
+                            <div class="progress mt-3" style="height: 6px;">
+                                <div class="progress-bar" 
+                                     :class="timerMode === 'work' ? 'bg-primary' : 'bg-success'"
+                                     :style="{width: timerProgress + '%'}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="analytics" class="page container py-4" :class="{ 'active': currentPage === 'analytics' }">
+            <h2 class="mb-4 fw-bold"><i class="bi bi-graph-up me-2"></i>{{ t('analytics') }}</h2>
+            <div class="card-3d p-4 mb-4">
+                <h3 class="mb-4"><i class="bi bi-graph-up me-2"></i>{{ t('taskAnalytics') }}</h3>
+                
+                <!-- Quick Stats -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h3>{{ filteredTasksForAnalytics.length }}</h3>
+                            <p>{{ t('totalTasks') }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h3>{{ completedTasksForAnalytics.length }}</h3>
+                            <p>{{ t('completed') }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h3>{{ activeTasksForAnalytics.length }}</h3>
+                            <p>{{ t('active') }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h3>{{ totalTimeSpent | formatHours }}</h3>
+                            <p>{{ t('timeSpent') }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reset All Tasks Button (small, right-aligned, margin-bottom) -->
+                <div class="d-flex justify-content-end mb-2">
+                    <button
+                        class="btn btn-sm reset-tasks-btn"
+                        style="min-width: 140px;"
+                        @click="tasks = []; saveTasks();"
+                    >
+                        {{ t('reset') }} All Tasks
+                    </button>
+                </div>
+                
+                <!-- Main Charts -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">{{ t('completionRate') }}</h5>
+                        <canvas id="completionChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings" class="page container py-4" :class="{ 'active': currentPage === 'settings' }">
+            <h2 class="mb-4 fw-bold"><i class="bi bi-gear me-2"></i>{{ t('settings') }}</h2>
+            <div class="card-3d p-4">
+                <h3 class="mb-4"><i class="bi bi-gear me-2"></i>{{ t('settings') }}</h3>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <h5 class="mb-3"><i class="bi bi-palette me-2"></i>{{ t('appearance') }}</h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ t('themeColor') }}</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button v-for="color in themeColors" :key="color.bg"
+                                        @click="setThemeColor(color)"
+                                        class="btn rounded-pill"
+                                        :style="{ 
+                                            backgroundColor: color.bg, 
+                                            color: color.text,
+                                            border: color === selectedColor ? '2px solid white' : 'none'
+                                        }">
+                                    {{ color.name[currentLanguage] }}
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" v-model="darkMode" @change="toggleDarkMode">
+                            <label class="form-check-label">{{ t('darkMode') }}</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <h5 class="mb-3"><i class="bi bi-list-task me-2"></i>{{ t('taskSettings') }}</h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{{ t('defaultPriority') }}</label>
+                            <select class="form-select" v-model="defaultPriority" style="background-color: var(--dark-2); color: var(--light-1); border-color: var(--dark-3);">
+                                <option value="HIGH">{{ t('high') }}</option>
+                                <option value="MEDIUM">{{ t('medium') }}</option>
+                                <option value="LOW">{{ t('low') }}</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" v-model="enableAI">
+                            <label class="form-check-label">{{ t('enableAISuggestions') }}</label>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" v-model="enableNotifications">
+                            <label class="form-check-label">{{ t('enableNotifications') }}</label>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" v-model="enableTimeTracking">
+                            <label class="form-check-label">{{ t('enableTimeTracking') }}</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end mt-3">
+                    <button class="btn btn-primary me-2" @click="saveSettings">
+                        <i class="bi bi-save me-1"></i> {{ t('saveSettings') }}
+                    </button>
+                    <button class="btn btn-outline-secondary" @click="resetSettings">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> {{ t('reset') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Modal -->
+        <div v-if="showTaskModal" class="modal-3d">
+            <div class="modal-content-3d">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0">{{ editingTask ? t('editTask') : t('addNewTask') }}</h3>
+                    <button @click="closeTaskModal" class="btn btn-sm btn-close btn-close-white"></button>
+                </div>
+                
+                <form @submit.prevent="editingTask ? updateTask(currentTask) : addTask()">
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('title') }}*</label>
+                        <!-- Removed dropdown, only show input for current app language -->
+                        <input type="text" class="form-control"
+                               v-model="currentTask.title[currentLanguage]" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ t('description') }}</label>
+                        <textarea class="form-control"
+              v-model="currentTask.description[currentLanguage]" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ t('priority') }}</label>
+                            <select class="form-select" v-model="currentTask.priority">
+                                <option value="HIGH">{{ t('high') }}</option>
+                                <option value="MEDIUM">{{ t('medium') }}</option>
+                                <option value="LOW">{{ t('low') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ t('category') }}</label>
+                            <select class="form-select" v-model="currentTask.category">
+                                <option value="WORK">{{ t('work') }}</option>
+                                <option value="PERSONAL">{{ t('personal') }}</option>
+                                <option value="STUDY">{{ t('study') }}</option>
+                                <option value="HEALTH">{{ t('health') }}</option>
+                                <option value="OTHER">{{ t('other') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ t('dueDate') }}</label>
+                            <input type="date" class="form-control" 
+                                   v-model="currentTask.dueDate">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ t('estimatedTime') }} ({{ t('hours') }})</label>
+                            <input type="number" class="form-control" 
+                                   v-model="currentTask.estimatedTime" min="0" step="0.5">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end">
+                        <button type="button" @click="closeTaskModal" class="btn btn-outline-secondary me-2">
+                            {{ t('cancel') }}
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            {{ editingTask ? t('updateTask') : t('addTask') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <div class="fab" @click="showTaskModal = true; editingTask = null;">
+            <i class="bi bi-plus-lg"></i>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const { createApp, ref, computed, onMounted, watch, nextTick } = Vue;
+
+        // Translation dictionary
+        const translations = {
+            en: {
+                appTitle: "Dailynest:Your personal Task Manager",
+                dashboard: "Dashboard",
+                analytics: "Analytics",
+                settings: "Settings",
+                activeTasks: "Active Tasks",
+                completed: "Completed",
+                overdue: "Overdue",
+                productivity: "Productivity",
+                addTask: "Add Task",
+                edit: "Edit",
+                delete: "Delete",
+                startTimer: "Start Timer",
+                noDeadline: "No deadline",
+                allCategories: "All Categories",
+                work: "Work",
+                personal: "Personal",
+                study: "Study",
+                health: "Health",
+                other: "Other",
+                high: "High",
+                medium: "Medium",
+                low: "Low",
+                totalTasks: "Total Tasks",
+                timeSpent: "Time Spent",
+                completionRate: "Completion Rate",
+                // Removed the following keys as per the code change:
+                // timeDistribution: "Time Distribution",
+                // taskCategories: "Task Categories",
+                // taskPriorities: "Task Priorities",
+                // productivityTrend: "Productivity Trend",
+                timeTracking: "Time Tracking",
+                noTimeTrackingData: "No time tracking data available",
+                appearance: "Appearance",
+                themeColor: "Theme Color",
+                darkMode: "Dark Mode",
+                taskSettings: "Task Settings",
+                defaultPriority: "Default Priority",
+                enableAISuggestions: "Enable AI Suggestions",
+                enableNotifications: "Enable Notifications",
+                enableTimeTracking: "Enable Time Tracking",
+                saveSettings: "Save Settings",
+                reset: "Reset",
+                close: "Close",
+                cancel: "Cancel",
+                updateTask: "Update Task",
+                applySuggestion: "Apply Suggestion",
+                generateSuggestions: "Generate Suggestions",
+                noSuggestions: "No suggestions yet. Add some tasks!",
+                addNewTask: "Add New Task",
+                editTask: "Edit Task",
+                title: "Title",
+                description: "Description",
+                priority: "Priority",
+                category: "Category",
+                dueDate: "Due Date",
+                estimatedTime: "Estimated Time",
+                hours: "Hours",
+                active: "Active",
+                aiHelp: "AI Help",
+                aiSuggestions: "AI Suggestions",
+                focusTimer: "Focus Timer",
+                start: "Start",
+                pause: "Pause",
+                productivty: "Productivity",
+                timePeriod: "Time Period",
+                last7Days: "Last 7 Days",
+                last30Days: "Last 30 Days",
+                allTime: "All Time",
+                // ...add any other UI strings here...
+                // Add to each language in your translations object:
+aiNoTasks: "You don't have any tasks yet. Add some tasks to get suggestions!",
+aiTooManyHours: "You have {hours} hours of tasks planned. Consider prioritizing or rescheduling some tasks.",
+aiSortedByPriority: "Tasks sorted by priority (High to Low)",
+aiOverdueTasks: "You have {count} overdue tasks. Focus on completing these first.",
+aiShowingOverdue: "Showing overdue tasks. Refresh to see all tasks again.",
+aiHighPriority: "You have {count} high priority tasks. Focus on these first.",
+aiShowingHighPriority: "Showing high priority tasks. Refresh to see all tasks again.",
+aiQuickTasks: "You have {count} quick tasks (<30 min). Complete these for quick progress.",
+aiShowingQuickTasks: "Showing quick tasks. Refresh to see all tasks again.",
+aiNoDueDate: "You have {count} tasks without due dates. Consider adding deadlines.",
+aiShowingNoDueDate: "Showing tasks without due dates. Refresh to see all tasks again.",
+aiAllGood: "Your tasks look well organized! Keep up the good work.",
+yourTasks: 'Your Tasks',
+completed: "Completed",
+active: "Active",
+overdue: "Overdue",
+high: "High",
+medium: "Medium",
+low: "Low",
+work: "Work",
+study: "Study",
+other: "Other",
+health: "Health",
+personal: "Personal",
+blue: "Blue",
+black: "Black",
+cosmos: "Cosmos",
+violet: "Violet",
+rose: "Rose",
+            },
+            hi: {
+                appTitle: "डेलीनेस्ट: आपका व्यक्तिगत कार्य प्रबंधक",
+                dashboard: "डैशबोर्ड",
+                analytics: "विश्लेषण",
+                settings: "सेटिंग्स",
+                activeTasks: "सक्रिय कार्य",
+                completed: "पूर्ण",
+                overdue: "अतिदेय",
+                productivity: "उत्पादकता",
+                addTask: "कार्य जोड़ें",
+                edit: "संपादित करें",
+                delete: "हटाएं",
+                startTimer: "घड़ी शुरू करें",
+                noDeadline: "कोई समय सीमा नहीं",
+                allCategories: "सभी श्रेणियाँ",
+                work: "काम",
+                personal: "व्यक्तिगत",
+                study: "अध्ययन",
+                health: "स्वास्थ्य",
+                other: "अन्य",
+                high: "उच्च",
+                medium: "मध्यम",
+                low: "निम्न",
+                totalTasks: "कुल कार्य",
+                timeSpent: "व्यतीत समय",
+                completionRate: "पूर्णता दर",
+                // Removed the following keys as per the code change:
+                // timeDistribution: "समय वितरण",
+                // taskCategories: "कार्य श्रेणियाँ",
+                // taskPriorities: "कार्य प्राथमिकताएँ",
+                // productivityTrend: "उत्पादकता प्रवृत्ति",
+                timeTracking: "समय ट्रैकिंग",
+                noTimeTrackingData: "कोई समय ट्रैकिंग डेटा उपलब्ध नहीं",
+                appearance: "दृश्य",
+                themeColor: "थीम रंग",
+                darkMode: "अंधेरा मोड",
+                taskSettings: "कार्य सेटिंग्स",
+                defaultPriority: "डिफ़ॉल्ट प्राथमिकता",
+                enableAISuggestions: "AI सुझाव सक्षम करें",
+                enableNotifications: "सूचनाएँ सक्षम करें",
+                enableTimeTracking: "समय ट्रैकिंग सक्षम करें",
+                saveSettings: "सेटिंग्स सहेजें",
+                reset: "रीसेट करें",
+                close: "बंद करें",
+                cancel: "रद्द करें",
+                updateTask: "कार्य अपडेट करें",
+                applySuggestion: "सुझाव लागू करें",
+                generateSuggestions: "सुझाव उत्पन्न करें",
+                noSuggestions: "अभी तक कोई सुझाव नहीं है। कुछ कार्य जोड़ें!",
+                addNewTask: "नया कार्य जोड़ें",
+                editTask: "कार्य संपादित करें",
+                title: "शीर्षक",
+                description: "विवरण",
+                priority: "प्राथमिकता",
+                category: "श्रेणी",
+                dueDate: "समाप्ति तिथि",
+                estimatedTime: "अनुमानित समय",
+                hours: "घंटे",
+                active: "सक्रिय",
+                aiHelp: "AI सहायता",
+                aiSuggestions: "AI सुझाव",
+                focusTimer: "फोकस टाइमर",
+                start: "शुरू करें",
+                pause: "रोकें",
+                productivty: "उत्पादकता",
+                timePeriod: "समय अवधि",
+                last7Days: "पिछले 7 दिन",
+                last30Days: "पिछले 30 दिन",
+                allTime: "सभी समय",
+                aiNoTasks: "आपके पास अभी कोई कार्य नहीं है। सुझाव प्राप्त करने के लिए कुछ कार्य जोड़ें!",
+aiTooManyHours: "आपने {hours} घंटे के कार्य निर्धारित किए हैं। कृपया प्राथमिकता दें या पुनर्निर्धारित करें।",
+aiSortedByPriority: "कार्य प्राथमिकता (उच्च से निम्न) के अनुसार क्रमबद्ध किए गए हैं",
+aiOverdueTasks: "आपके पास {count} अतिदेय कार्य हैं। पहले इन्हें पूरा करें।",
+aiShowingOverdue: "अतिदेय कार्य दिखाए जा रहे हैं। सभी कार्य देखने के लिए रीफ्रेश करें।",
+aiHighPriority: "आपके पास {count} उच्च प्राथमिकता वाले कार्य हैं। पहले इन्हें पूरा करें।",
+aiShowingHighPriority: "उच्च प्राथमिकता वाले कार्य दिखाए जा रहे हैं। सभी कार्य देखने के लिए रीफ्रेश करें।",
+aiQuickTasks: "आपके पास {count} त्वरित कार्य (<30 मिनट) हैं। इन्हें जल्दी पूरा करें।",
+aiShowingQuickTasks: "त्वरित कार्य दिखाए जा रहे हैं। सभी कार्य देखने के लिए रीफ्रेश करें।",
+aiNoDueDate: "आपके {count} कार्यों की कोई समय सीमा नहीं है। कृपया समय सीमा जोड़ें।",
+aiShowingNoDueDate: "समय सीमा रहित कार्य दिखाए जा रहे हैं। सभी कार्य देखने के लिए रीफ्रेश करें।",
+aiAllGood: "आपके कार्य अच्छी तरह व्यवस्थित हैं! ऐसे ही बने रहें।",
+yourTasks: "आपके कार्य",
+
+                // ...add any other UI strings here...
+                // Hindi translations for requested words:
+                completed: "पूर्ण",
+                active: "सक्रिय",
+                overdue: "अतिदेय",
+                high: "उच्च",
+                medium: "मध्यम",
+                low: "निम्न",
+                work: "काम",
+                personal: "व्यक्तिगत",
+                study: "अध्ययन",
+                health: "स्वास्थ्य",
+                other: "अन्य",
+                blue: "नीला",
+                black: "काला",
+                cosmos: "ब्रह्माण्ड",
+                violet: "बैंगनी",
+                rose: "गुलाबी",
+            },
+            sa: {
+                appTitle: "डेलिनेस्ट्: भवतः व्यक्तिगतकार्यव्यवस्थापकः",
+aiTooManyHours: "भवतः {hours} घण्टानां कार्याणि नियोजितानि। कृपया प्राथमिकतया वा पुनर्नियोजनं चिन्तयतु।",
+aiSortedByPriority: "कार्याणि प्राथमिकतानुसारम् (उच्चात् निम्नपर्यन्तम्) व्यवस्थितानि।",
+aiOverdueTasks: "भवतः {count} अतिदेयकार्याणि सन्ति। प्रथमं तानि सम्पादयतु।",
+aiShowingOverdue: "अतिदेयकार्याणि दर्श्यन्ते। सर्वाणि कार्याणि द्रष्टुं पुनः ताजयतु।",
+aiHighPriority: "भवतः {count} उच्चप्राथमिकतायुक्तकार्याणि सन्ति। प्रथमं तानि सम्पादयतु।",
+aiShowingHighPriority: "उच्चप्राथमिकतायुक्तकार्याणि दर्श्यन्ते। सर्वाणि कार्याणि द्रष्टुं पुनः ताजयतु।",
+aiQuickTasks: "भवतः {count} शीघ्रकार्याणि (<३० निमेषाः) सन्ति। शीघ्रं सम्पादयतु।",
+aiShowingQuickTasks: "शीघ्रकार्याणि दर्श्यन्ते। सर्वाणि कार्याणि द्रष्टुं पुनः ताजयतु।",
+aiNoDueDate: "भवतः {count} कार्येषु समाप्तिसमयः नास्ति। कृपया समाप्तिसमयं योजयतु।",
+aiShowingNoDueDate: "समाप्तिसमयरहितकार्याणि दर्श्यन्ते। सर्वाणि कार्याणि द्रष्टुं पुनः ताजयतु।",
+aiAllGood: "भवतः कार्याणि सम्यक् व्यवस्थितानि! एवं सततम् कुर्यात्।",
+yourTasks: "भवतः कार्याणि",
+work: "कार्यः",
+study: "अध्ययनम्",
+health: "स्वास्थ्यं",
+personal: "व्यक्तिगत्",
+other: "अन्यत्",
+active: "सक्रियः",
+overdue: "अतिदेयः",
+completed: "समाप्तम्",
+high: "उच्चः",
+medium: "मध्यमः",
+low: "निम्नः",
+blue: "नीलः",
+black: "कृष्णः",
+cosmos: "ब्रह्माण्डः",
+violet: "नीललोहितः",
+rose: "पाटलः",
+addTask: "कार्यं योजयतु",
+aiHelp: "एआई साहाय्यम्",
+aiSuggestions: "एआई सुझावाः",
+focusTimer: "एकाग्रता-समयः",
+aiNoTasks: "भवतः कार्याणि न सन्ति। सुझावान् प्राप्तुं किञ्चित् कार्याणि योजयतु।",
+addTask: "कार्यं योजयतु",
+work: "कार्यः",
+start: "आरभताम्",
+pause: "विरम्यताम्",
+aiSuggestions: "एआई सुझावाः",
+focusTimer: "एकाग्रता-समयः",
+workTime: "कार्य-समयः",
+breakTime: "विराम-समयः",
+reset: "सर्वाणि कार्याणि पुनः आरभताम्",
+all: "सर्वे",
+tasks: "कार्याणि",
+applySuggestion: "सुझावं योजयतु",
+productivity: "उत्पादकता",
+activeTasks: "सक्रिय कार्याणि",
+darkMode: "अंधकार-मोडः",
+                dashboard: "डैशबोर्ड",
+                analytics: "विश्लेषणम्",    
+                settings: "सेटिंग्स्",
+                totalTasks: "कुल कार्याणि",
+                totalCompleted: "समाप्त कार्याणि",
+                totalActive: "सक्रिय कार्याणि",
+                totalOverdue: "अतिदेय कार्याणि",
+                totalDue: "देय कार्याणि",
+                totalHigh: "उच्च कार्याणि",
+                totalMedium: "मध्यम कार्याणि",
+                totalLow: "निम्न कार्याणि",
+                resetAllTasks: "सर्वाणि कार्याणि पुनः आरभताम्",
+                themeColor: "विषय-वर्णः",
+                appearance: "दृश्य",
+                taskSettings: "कार्य सेटिंग्स्", 
+                defaultPriority: "डिफ़ॉल्ट प्राथमिकता",
+                enableAISuggestions: "एआई सुझावाः सक्षमयतु",
+                enableNotifications: "सूचनाः सक्षमयतु",
+                enableTimeTracking: "समय ट्रैकिंग सक्षमयतु",
+                enableFocusTimer: "एकाग्रता-समयः सक्षमयतु",
+                saveSettings: "सेटिंग्स् सहेजताम्",
+                completionRate: "पूर्णता दर",
+                // Removed the following keys as per the code change:
+                // timeDistribution: "समय वितरण",
+                // taskCategories: "कार्य प्राथमिकताएँ",
+                // productivityTrend: "उत्पादकता प्रवृत्ति",
+                timeSpent: "व्यय केलेला समय",
+                task: "कार्य",
+                analytics: "विश्लेषणम्",
+                taskAnalytics: "कार्य विश्लेषणम्",
+
+
+                // ...add any other UI strings here...
+
+
+
+            }
+        };
+        createApp({
+            setup() {
+                // App State
+                const currentPage = ref('dashboard');
+                const darkMode = ref(true);
+                const showTaskModal = ref(false);
+                const editingTask = ref(null);
+
+                // Task Data
+                const tasks = ref(JSON.parse(localStorage.getItem('tasks')) || []);
+                const currentTask = ref({
+                    title: { en: '', hi: '', sa: '' },
+                    description: { en: '', hi: '', sa: '' },
+                    priority: 'MEDIUM',
+                    category: 'WORK',
+                    dueDate: '',
+                    estimatedTime: 1,
+                    completed: false,
+                    timeSpent: 0,
+                    createdAt: new Date().toISOString()
+                });
+
+                // Enhanced Timer State
+                const timerTime = ref(1500); // 25 minutes
+                const timerActive = ref(false);
+                const timerInterval = ref(null);
+                const timerMode = ref('work'); // 'work' or 'break'
+                const timerPreset = ref('pomodoro'); // 'pomodoro' or 'double'
+                const workDuration = ref(1500);
+                const breakDuration = ref(300);
+                const currentTaskTimer = ref(null);
+                const timerStartTime = ref(null);
+                const timerProgress = computed(() => {
+                    const total = timerMode.value === 'work' ? workDuration.value : breakDuration.value;
+                    return 100 - (timerTime.value / total * 100);
+                });
+
+                // Analytics State
+                const analyticsPeriod = ref('week');
+                const analyticsCategory = ref('all');
+                const analyticsPriority = ref('all');
+                const completionChart = ref(null);
+                // Removed the following chart refs as per the code change:
+                // const timeChart = ref(null);
+                // const categoryChart = ref(null);
+                // const priorityChart = ref(null);
+                const productivityChart = ref(null);
+
+                // Settings
+                                // Settings
+                const defaultPriority = ref('MEDIUM');
+                const enableAI = ref(true);
+                const enableNotifications = ref(true);
+                const enableTimeTracking = ref(true);
+                
+                // Theme Colors with multilingual names
+const themeColors = ref([
+    { name: { en: 'Blue', hi: 'नीला', sa: 'नीलः' }, bg: '#191970', text: 'white' },
+    { name: { en: 'Black', hi: 'काला', sa: 'कृष्णः' }, bg: 'black', text: 'white' },
+    { name: { en: 'Cosmos', hi: 'ब्रह्माण्ड', sa: 'ब्रह्माण्डः' }, bg: '#58111a', text: 'black' },
+    { name: { en: 'Violet', hi: 'बैंगनी', sa: 'नीललोहितः' }, bg: '#7c3aed', text: 'white' },
+    { name: { en: 'Rose', hi: 'गुलाबी', sa: 'पाटलः' }, bg: '#e11d48', text: 'white' }
+]);
+const selectedColor = ref(themeColors.value[0]);
+
+                // AI Suggestions
+                const aiSuggestions = ref([]);
+
+                // Computed Properties
+                const activeTasks = computed(() => tasks.value.filter(t => !t.completed).length);
+                const completedTasks = computed(() => tasks.value.filter(t => t.completed).length);
+                const overdueTasks = computed(() => tasks.value.filter(t => 
+                    t.dueDate && new Date(t.dueDate) < new Date() && !t.completed
+                ).length);
+                const productivityScore = computed(() => {
+                    const completed = completedTasks.value;
+                    const total = tasks.value.length;
+                    return total > 0 ? Math.round((completed / total) * 100) : 0;
+                });
+                const filteredTasks = computed(() => {
+                    return [...tasks.value].sort((a, b) => {
+                        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                        const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+                        return priorityOrder[b.priority] - priorityOrder[a.priority] || 
+                               new Date(a.dueDate) - new Date(b.dueDate);
+                    });
+                });
+
+                // Analytics Computed Properties
+                const filteredTasksForAnalytics = computed(() => {
+                    let filtered = [...tasks.value];
+                    
+                    // Filter by period
+                    if (analyticsPeriod.value !== 'all') {
+                        const days = analyticsPeriod.value === 'week' ? 7 : 30;
+                        const cutoffDate = new Date();
+                        cutoffDate.setDate(cutoffDate.getDate() - days);
+                        
+                        filtered = filtered.filter(task => 
+                            new Date(task.createdAt) >= cutoffDate
+                        );
+                    }
+                    
+                    // Filter by category
+                    if (analyticsCategory.value !== 'all') {
+                        filtered = filtered.filter(task => 
+                            task.category === analyticsCategory.value
+                        );
+                    }
+                    
+                    // Filter by priority
+                    if (analyticsPriority.value !== 'all') {
+                        filtered = filtered.filter(task => 
+                            task.priority === analyticsPriority.value
+                        );
+                    }
+                    
+                    return filtered;
+                });
+                
+                const completedTasksForAnalytics = computed(() => 
+                    filteredTasksForAnalytics.value.filter(t => t.completed)
+                );
+                
+                const activeTasksForAnalytics = computed(() => 
+                    filteredTasksForAnalytics.value.filter(t => !t.completed)
+                );
+                
+                const timeTrackedTasks = computed(() => 
+                    filteredTasksForAnalytics.value
+                        .filter(t => t.timeSpent > 0)
+                        .sort((a, b) => b.timeSpent - a.timeSpent)
+                );
+                
+                const totalTimeSpent = computed(() => 
+                    filteredTasksForAnalytics.value.reduce((sum, task) => sum + (task.timeSpent || 0), 0)
+                );
+                
+                // Methods
+                const changePage = (page) => {
+                    currentPage.value = page;
+                    if (page === 'analytics') {
+                        nextTick(() => {
+                            initCharts();
+                        });
+                    }
+                };
+
+                const toggleDarkMode = () => {
+                    if (darkMode.value) {
+                        document.body.classList.add('light-mode');
+                    } else {
+                        document.body.classList.remove('light-mode');
+                    }
+                    darkMode.value = !darkMode.value;
+                };
+
+                const addTask = () => {
+                    const task = {
+                        id: Date.now().toString(),
+                        ...currentTask.value,
+                        createdAt: new Date().toISOString(),
+                        completed: false,
+                        timeSpent: 0
+                    };
+                    tasks.value.unshift(task);
+                    saveTasks();
+                    closeTaskModal();
+                    generateAISuggestions();
+                };
+
+                const editTask = (task) => {
+                    editingTask.value = task;
+                    currentTask.value = { ...task };
+                    showTaskModal.value = true;
+                };
+
+                const updateTask = (task) => {
+                    const index = tasks.value.findIndex(t => t.id === task.id);
+                    if (index !== -1) {
+                        tasks.value[index] = task;
+                        saveTasks();
+                    }
+                    closeTaskModal();
+                };
+               const deleteTask = (id) => {
+    if (confirm('Are you sure you want to delete this task?')) {
+        const idx = tasks.value.findIndex(task => String(task.id) === String(id));
+        if (idx !== -1) {
+            tasks.value.splice(idx, 1); // In-place removal for reactivity
+            saveTasks();
+            // If the deleted task is being edited, close the modal
+        }
+    }
+};
+
+                       const closeTaskModal = () => {
+                    showTaskModal.value = false;
+                    editingTask.value = null;
+                    currentTask.value = {
+                        title: { en: '', hi: '', sa: '' },
+                        description: { en: '', hi: '', sa: '' },
+                        priority: defaultPriority.value,
+                        category: 'WORK',
+                        dueDate: '',
+                        estimatedTime: 1,
+                        completed: false,
+                        timeSpent: 0
+                    };
+                };
+
+               const saveTasks = () => {
+    try {
+        localStorage.setItem('tasks', JSON.stringify(tasks.value));
+        console.log('Tasks saved:', tasks.value); // Debug log
+    } catch (error) {
+        console.error('Error saving tasks:', error);
+    }
+};
+
+                const formatDate = (dateString) => {
+                    if (!dateString) return '';
+                    return new Date(dateString).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        year: dateString.includes(new Date().getFullYear()) ? undefined : 'numeric'
+                    });
+                };
+
+                const formatTime = (seconds) => {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                };
+                
+                const formatHours = (minutes) => {
+                    if (minutes < 60) return `${minutes}m`;
+                    const hours = Math.floor(minutes / 60);
+                    const mins = minutes % 60;
+                    return `${hours}h ${mins}m`;
+                };
+                
+                const getCategoryClass = (category) => {
+                    switch(category) {
+                        case 'WORK': return 'work-tag';
+                        case 'PERSONAL': return 'personal-tag';
+                        case 'STUDY': return 'study-tag';
+                        case 'HEALTH': return 'health-tag';
+                        case 'OTHER': return 'other-tag';
+                        default: return 'bg-secondary';
+                    }
+                };
+                
+                const calculateTimePercentage = (task) => {
+                    if (!task.estimatedTime || task.estimatedTime <= 0) return 0;
+                    const estimatedMinutes = task.estimatedTime * 60;
+                    return Math.min(100, (task.timeSpent / estimatedMinutes) * 100);
+                };
+
+                // Enhanced Timer Methods
+                const setTimerPreset = (work, breakTime) => {
+                    workDuration.value = work;
+                    breakDuration.value = breakTime;
+                    timerPreset.value = work === 1500 ? 'pomodoro' : 'double';
+                    resetTimer();
+                };
+
+                const startTimer = () => {
+                    if (!timerActive.value) {
+                        timerActive.value = true;
+                        timerStartTime.value = new Date();
+                        timerInterval.value = setInterval(() => {
+                            if (timerTime.value > 0) {
+                                timerTime.value--;
+                            } else {
+                                // Timer completed
+                                if (timerMode.value === 'work') {
+                                    // Record time spent if tracking a task
+                                    if (currentTaskTimer.value && enableTimeTracking.value) {
+                                        const endTime = new Date();
+                                        const timeSpent = Math.round((endTime - timerStartTime.value) / 1000 / 60); // in minutes
+                                        
+                                        const taskIndex = tasks.value.findIndex(t => t.id === currentTaskTimer.value.id);
+                                        if (taskIndex !== -1) {
+                                            tasks.value[taskIndex].timeSpent = (tasks.value[taskIndex].timeSpent || 0) + timeSpent;
+                                            saveTasks();
+                                        }
+                                    }
+                                    
+                                    // Switch to break
+                                    timerMode.value = 'break';
+                                    timerTime.value = breakDuration.value;
+                                    if (enableNotifications.value) {
+                                        alert('Work session completed! Time for a break.');
+                                    }
+                                } else {
+                                    // Switch back to work
+                                    timerMode.value = 'work';
+                                    timerTime.value = workDuration.value;
+                                    if (enableNotifications.value) {
+                                        alert('Break over! Time to get back to work.');
+                                    }
+                                }
+                                timerStartTime.value = new Date();
+                            }
+                        }, 1000);
+                    }
+                };
+
+                const pauseTimer = () => {
+                    if (timerActive.value && currentTaskTimer.value && enableTimeTracking.value) {
+                        const endTime = new Date();
+                        const timeSpent = Math.round((endTime - timerStartTime.value) / 1000 / 60); // in minutes
+                        
+                        const taskIndex = tasks.value.findIndex(t => t.id === currentTaskTimer.value.id);
+                        if (taskIndex !== -1) {
+                            tasks.value[taskIndex].timeSpent = (tasks.value[taskIndex].timeSpent || 0) + timeSpent;
+                            saveTasks();
+                        }
+                    }
+                    
+                    timerActive.value = false;
+                    clearInterval(timerInterval.value);
+                };
+
+                const resetTimer = () => {
+                    pauseTimer();
+                    timerMode.value = 'work';
+                    timerTime.value = workDuration.value;
+                    currentTaskTimer.value = null;
+                };
+                
+                const startTaskTimer = (task) => {
+                    if (timerActive.value && currentTaskTimer.value && currentTaskTimer.value.id === task.id) {
+                        pauseTimer();
+                        return;
+                    }
+                    
+                    if (timerActive.value) {
+                        pauseTimer();
+                    }
+                    
+                    currentTaskTimer.value = task;
+                    timerMode.value = 'work';
+                    timerTime.value = workDuration.value;
+                    startTimer();
+                };
+
+                // Enhanced AI Suggestions
+                const generateAISuggestions = () => {
+                    aiSuggestions.value = []; // Clear previous suggestions
+
+                    if (!enableAI.value || tasks.value.length === 0) {
+                        if (tasks.value.length === 0) {
+                            aiSuggestions.value.push({
+                                id: 'no-tasks',
+                                text: t('aiNoTasks'),
+                                action: () => {
+                                    showTaskModal.value = true;
+                                }
+                            });
+                        }
+                        return;
+                    }
+
+                    // 1. Time Management Suggestion
+                    const totalHours = tasks.value
+                        .filter(t => !t.completed)
+                        .reduce((sum, t) => sum + (t.estimatedTime || 1), 0);
+                    
+                    if (totalHours > 8) {
+                        aiSuggestions.value.push({
+                            id: 'time-management',
+                            text: t('aiTooManyHours', { hours: totalHours }),
+                            action: () => {
+                                // Sort by priority
+                                tasks.value.sort((a, b) => {
+                                    const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+                                    return priorityOrder[b.priority] - priorityOrder[a.priority];
+                                });
+                                alert(t('aiSortedByPriority'));
+                            }
+                        });
+                    }
+                    
+                    // 2. Overdue Tasks Suggestion
+                    const overdue = tasks.value.filter(t =>
+                       
+                        t.dueDate && new Date(t.dueDate) < new Date() && !t.completed
+                    );
+                    
+                    if (overdue.length > 0) {
+                                               aiSuggestions.value.push({
+                            id: 'overdue-tasks',
+                            text: t('aiOverdueTasks', { count: overdue.length }),
+                            action: () => {
+                                const originalTasks = [...tasks.value];
+                                tasks.value = [...tasks.value].filter(t =>
+                                    t.dueDate && new Date(t.dueDate) < new Date() && !t.completed
+                                );
+                                alert(t('aiShowingOverdue'));
+                                setTimeout(() => {
+                                    tasks.value = originalTasks;
+                                }, 5000);
+                            }
+                        });
+                    }
+                    
+                    // 3. High Priority Tasks Suggestion
+                    const highPriority = tasks.value.filter(t =>
+                        t.priority === 'HIGH' && !t.completed
+                    );
+                    
+                    if (highPriority.length > 0) {
+                        aiSuggestions.value.push({
+                            id: 'high-priority',
+                            text: t('aiHighPriority', { count: highPriority.length }),
+                            action: () => {
+                                const originalTasks = [...tasks.value];
+                                tasks.value = [...tasks.value].filter(t =>
+                                    t.priority === 'HIGH' && !t.completed
+                                );
+                                alert(t('aiShowingHighPriority'));
+                                setTimeout(() => {
+                                    tasks.value = originalTasks;
+                                }, 5000);
+                            }
+                        });
+                    }
+                    
+                    // 4. Quick Wins Suggestion
+                    const quickTasks = tasks.value.filter(t =>
+                        !t.completed && (!t.estimatedTime || t.estimatedTime <= 0.5)
+                    );
+                    
+                    if (quickTasks.length > 0) {
+                        aiSuggestions.value.push({
+                            id: 'quick-wins',
+                            text: t('aiQuickTasks', { count: quickTasks.length }),
+                            action: () => {
+                                const originalTasks = [...tasks.value];
+                                tasks.value = [...tasks.value].filter(t =>
+                                    !t.completed && (!t.estimatedTime || t.estimatedTime <= 0.5)
+                                );
+                                alert(t('aiShowingQuickTasks'));
+                                setTimeout(() => {
+                                    tasks.value = originalTasks;
+                                }, 5000);
+                            }
+                        });
+                    }
+                    
+                    // 5. No Due Date Suggestion
+                    const noDueDate = tasks.value.filter(t =>
+                        !t.dueDate && !t.completed
+                    );
+                    
+                    if (noDueDate.length > 0) {
+                        aiSuggestions.value.push({
+                            id: 'no-due-date',
+                            text: t('aiNoDueDate', { count: noDueDate.length }),
+                            action: () => {
+                                const originalTasks = [...tasks.value];
+                                tasks.value = [...tasks.value].filter(t =>
+                                    !t.dueDate && !t.completed
+                                );
+                                alert(t('aiShowingNoDueDate'));
+                                setTimeout(() => {
+                                    tasks.value = originalTasks;
+                                }, 5000);
+                            }
+                        });
+                    }
+                    
+                    // If no suggestions were generated (unlikely but possible)
+                    if (aiSuggestions.value.length === 0) {
+                        aiSuggestions.value.push({
+                            id: 'no-suggestions',
+                            text: t('aiAllGood'),
+                            action: () => {}
+                        });
+                    }
+                };
+
+                const applySuggestion = (suggestion) => {
+                    suggestion.action();
+                    // Remove the applied suggestion
+                    aiSuggestions.value = aiSuggestions.value.filter(s => s.id !== suggestion.id);
+                };
+
+                // Theme Methods
+                const setThemeColor = (color) => {
+                    selectedColor.value = color;
+                    document.documentElement.style.setProperty('--primary', color.bg);
+                    document.documentElement.style.setProperty('--primary-dark', shadeColor(color.bg, -20));
+                };
+
+                const shadeColor = (color, percent) => {
+                    let R = parseInt(color.substring(1,3), 16);
+                    let G = parseInt(color.substring(3,5), 16);
+                    let B = parseInt(color.substring(5,7), 16);
+
+                    R = parseInt(R * (100 + percent) / 100);
+                    G = parseInt(G * (100 + percent) / 100);
+                    B = parseInt(B * (100 + percent) / 100);
+
+                    R = (R<255)?R:255;  
+                    G = (G<255)?G:255;  
+                    B = (B<255)?B:255;  
+
+                    return `#${((1<<24)+(R<<16)+(G<<8)+B).toString(16).slice(1)}`;
+                };
+
+                // Settings Methods
+                const saveSettings = () => {
+                    localStorage.setItem('settings', JSON.stringify({
+                        darkMode: darkMode.value,
+                        defaultPriority: defaultPriority.value,
+                        enableAI: enableAI.value,
+                        enableNotifications: enableNotifications.value,
+                        enableTimeTracking: enableTimeTracking.value,
+                        themeColor: selectedColor.value
+                    }));
+                    alert('Settings saved successfully!');
+                };
+
+                const resetSettings = () => {
+                    if (confirm('Reset all settings to default?')) {
+                        darkMode.value = true;
+                        defaultPriority.value = 'MEDIUM';
+                        enableAI.value = true;
+                        enableNotifications.value = true;
+                        enableTimeTracking.value = true;
+                        selectedColor.value = themeColors.value[0];
+                        setThemeColor(selectedColor.value);
+                        toggleDarkMode();
+                    }
+                };
+
+                // Initialize Charts
+                const initCharts = () => {
+                    // Destroy existing charts if they exist
+                    if (completionChart.value) completionChart.value.destroy();
+                    if (productivityChart.value) productivityChart.value.destroy();
+                    
+                    // Prepare data for charts
+                    const categories = ['WORK', 'PERSONAL', 'STUDY', 'HEALTH', 'OTHER'];
+                    const priorities = ['HIGH', 'MEDIUM', 'LOW'];
+                    
+                    // Completion Chart
+                    const completionCtx = document.getElementById('completionChart');
+                    completionChart.value = new Chart(completionCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Completed', 'Active', 'Overdue'],
+                            datasets: [{
+                                data: [
+                                    completedTasksForAnalytics.value.length,
+                                    activeTasksForAnalytics.value.length - overdueTasks.value,
+                                    overdueTasks.value
+                                ],
+                                backgroundColor: ['#10b981', '#2563eb', '#ef4444'],
+                                borderColor: '#1e293b'
+                            }]
+                        },
+                        options: {
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#e2e8f0'
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Productivity Chart
+                    const productivityCtx = document.getElementById('productivityChart');
+                    productivityChart.value = new Chart(productivityCtx, {
+                        type: 'line',
+                        data: {
+                            labels: Array(7).fill().map((_, i) => {
+                                const d = new Date();
+                                d.setDate(d.getDate() - 6 + i);
+                                return d.toLocaleDateString('en-US', { weekday: 'short' });
+                            }),
+                            datasets: [{
+                                label: 'Tasks Completed',
+                                data: Array(7).fill().map((_, i) => {
+                                    const d = new Date();
+                                    d.setDate(d.getDate() - 6 + i);
+                                    return filteredTasksForAnalytics.value.filter(t => {
+                                        if (!t.completed) return false;
+                                        const taskDate = new Date(t.createdAt);
+                                        return taskDate.toDateString() === d.toDateString();
+                                    }).length;
+                                }),
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    min: 0,
+                                    ticks: {
+                                        color: '#e2e8f0'
+                                    },
+                                    grid: {
+                                        color: '#334155'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        color: '#e2e8f0'
+                                    },
+                                    grid: {
+                                        color: '#334155'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#e2e8f0'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                };
+
+                // Lifecycle Hooks
+                onMounted(() => {
+                    // Load settings
+                    const savedSettings = JSON.parse(localStorage.getItem('settings'));
+                    if (savedSettings) {
+                        darkMode.value = savedSettings.darkMode;
+                        defaultPriority.value = savedSettings.defaultPriority || 'MEDIUM';
+                        enableAI.value = savedSettings.enableAI !== false;
+                        enableNotifications.value = savedSettings.enableNotifications !== false;
+                        enableTimeTracking.value = savedSettings.enableTimeTracking !== false;
+                        selectedColor.value = savedSettings.themeColor || themeColors.value[0];
+                        setThemeColor(selectedColor.value);
+                    }
+                    
+                    // Apply dark mode if needed
+                    if (darkMode.value) {
+                        document.body.classList.remove('light-mode');
+                    } else {
+                        document.body.classList.add('light-mode');
+                    }
+                    
+                    generateAISuggestions();
+                });
+
+                // Watch for changes
+                watch(tasks, () => {
+                    generateAISuggestions();
+                    saveTasks();
+                }, { deep: true });
+                
+                watch([analyticsPeriod, analyticsCategory, analyticsPriority], () => {
+                    if (currentPage.value === 'analytics') {
+                        initCharts();
+                    }
+                });
+
+                const currentLanguage = ref(localStorage.getItem('language') || 'en');
+                const t = (key) => translations[currentLanguage.value][key] || key;
+                const saveLanguage = () => {
+                    localStorage.setItem('language', currentLanguage.value);
+                };
+
+                const taskInputLang = ref(currentLanguage.value);
+
+                return {
+                    currentPage,
+                    darkMode,
+                    showTaskModal,
+                    editingTask,
+                    tasks,
+                    currentTask,
+                    timerTime,
+                    timerActive,
+                    timerMode,
+                    timerPreset,
+                    timerProgress,
+                    defaultPriority,
+                    enableAI,
+                    enableNotifications,
+                    enableTimeTracking,
+                    themeColors,
+                    selectedColor,
+                    aiSuggestions,
+                    analyticsPeriod,
+                    analyticsCategory,
+                    analyticsPriority,
+                    activeTasks,
+                    completedTasks,
+                    overdueTasks,
+                    productivityScore,
+                    filteredTasks,
+                    filteredTasksForAnalytics,
+                    completedTasksForAnalytics,
+                    activeTasksForAnalytics,
+                    timeTrackedTasks,
+                    totalTimeSpent,
+                    changePage,
+                    toggleDarkMode,
+                    addTask,
+                    editTask,
+                    updateTask,
+                    deleteTask,
+                    closeTaskModal,
+                    formatDate,
+                    formatTime,
+                    formatHours,
+                    getCategoryClass,
+                    calculateTimePercentage,
+                    setTimerPreset,
+                    startTimer,
+                    pauseTimer,
+                    resetTimer,
+                    startTaskTimer,
+                    generateAISuggestions,
+                    applySuggestion,
+                    setThemeColor,
+                    saveSettings,
+                    resetSettings,
+                    currentLanguage,
+                    t,
+                    saveLanguage,
+                    taskInputLang,
+                };
+            },
+            filters: {
+                formatHours(minutes) {
+                    if (minutes < 60) return `${minutes}m`;
+                    const hours = Math.floor(minutes / 60);
+                    const mins = minutes % 60;
+                    return `${hours}h ${mins}m`;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
