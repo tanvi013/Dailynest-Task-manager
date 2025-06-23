@@ -1,0 +1,35 @@
+
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --secondary: #10b981;
+    --accent: #0b55f5;
+    --dark-1: #0f172a;
+    --dark-2: #1e293b;
+    --dark-3: #334155;
+    --light-1: #f8fafc;
+    --light-2: #e2e8f0;
+    --light-3: #cbd5e1;
+    --danger: #ef4444;
+    --success: #10b981;
+    --warning: #220bf5;
+    --stat-text: #f8fafc;
+}
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--dark-1);
+    color: var(--light-2);
+    min-height: 100vh;
+    perspective: 1000px;
+    transition: all 0.3s ease;
+}
+body.light-mode {
+    --dark-1: #f8fafc;
+    --dark-2: #e2e8f0;
+    --dark-3: #cbd5e1;
+    --light-1: #0f172a;
+    --light-2: #1e293b;
+    --light-3: #334155;
+    --stat-text: #0f172a;
+}
+/* Add all other CSS rules extracted from the HTML file */
